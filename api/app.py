@@ -35,4 +35,5 @@ def daily_quiz():
     return jsonify({"response_code": 0, "results": results})
 
 if __name__ == "__main__":
+    fetch_questions()
     app.run(host="0.0.0.0", port=5000)
