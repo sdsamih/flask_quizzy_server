@@ -11,7 +11,7 @@ def fetch_questions():
     #verificar se já foi atualizado hoje (o script roda a cada 24h e quando o servidor inicia/reinicia)
     with engine.connect() as conn:
         result = conn.execute(text("SELECT MAX(created_at) AS last_update FROM questions"))
-        row = result.fetchone()
+        row = result.mappings().fetchone() 
         if row and row["last_update"]:
             last_update = row["last_update"]
             if isinstance(last_update, str):
