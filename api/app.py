@@ -17,7 +17,7 @@ class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.Text, nullable=False)
     correct_answer = db.Column(db.Text, nullable=False)
-    incorrect_answers = db.Column(db.Text, nullable=False)
+    incorrect_answers = db.Column(db.JSON, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 with app.app_context():
@@ -25,13 +25,14 @@ with app.app_context():
 
 @app.route("/daily_quiz")
 def daily_quiz():
-    fetch_questions()
-    questions = Question.query.limit(10).all()
+    fetch_questions()  
+    
+    questions = Question.query.order_by(Question.created_at.desc()).limit(10).all()
     results = [
         {
             "question": q.question,
             "correct_answer": q.correct_answer,
-            "incorrect_answers": q.incorrect_answers
+            "incorrect_answers": q.incorrect_answers 
         }
         for q in questions
     ]
