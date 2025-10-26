@@ -9,7 +9,7 @@ engine = create_engine(DATABASE_URL)
 def fetch_questions():
     
     #verificar se já foi atualizado hoje (o script roda a cada 24h e quando o servidor inicia/reinicia)
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         result = conn.execute(text("SELECT MAX(created_at) AS last_update FROM questions"))
         row = result.mappings().fetchone() 
         if row and row["last_update"]:
@@ -35,7 +35,7 @@ def fetch_questions():
         "incorrect_answers": str(q["incorrect_answers"])
     } for q in data["results"]]
     
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         # Limpa perguntas antigas
         conn.execute(text("DELETE FROM questions"))
         # Insere novas perguntas
