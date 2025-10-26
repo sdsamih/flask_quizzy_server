@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from update_questions import fetch_questions
 import os
 
 app = Flask(__name__)
@@ -23,6 +24,7 @@ with app.app_context():
 
 @app.route("/daily_quiz")
 def daily_quiz():
+    fetch_questions()
     questions = Question.query.limit(10).all()
     results = [
         {
@@ -35,5 +37,4 @@ def daily_quiz():
     return jsonify({"response_code": 0, "results": results})
 
 if __name__ == "__main__":
-    fetch_questions()
     app.run(host="0.0.0.0", port=5000)
