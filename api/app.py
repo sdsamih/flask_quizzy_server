@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from update_questions import fetch_questions
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 app = Flask(__name__)
@@ -18,13 +18,16 @@ class Question(db.Model):
     question = db.Column(db.Text, nullable=False)
     correct_answer = db.Column(db.Text, nullable=False)
     incorrect_answers = db.Column(db.JSON, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
 
 with app.app_context():
     db.create_all()
+    # Chama fetch_questions uma vez quando o servidor inicia
+    fetch_questions()
 
 @app.route("/daily_quiz")
 def daily_quiz():
+    # Atualiza apenas se necessário
     fetch_questions()  
     
     questions = Question.query.order_by(Question.created_at.desc()).limit(10).all()
@@ -32,7 +35,7 @@ def daily_quiz():
         {
             "question": q.question,
             "correct_answer": q.correct_answer,
-            "incorrect_answers": q.incorrect_answers 
+            "incorrect_answers": q.incorrect_answers,
         }
         for q in questions
     ]
