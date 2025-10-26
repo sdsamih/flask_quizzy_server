@@ -43,7 +43,7 @@ def fetch_questions():
             conn.execute(
                 text(
                     "INSERT INTO questions (question, correct_answer, incorrect_answers) VALUES (:question, :correct_answer, :incorrect_answers)"
-                ), **q
+                ), q
             )
     print("Perguntas atualizadas com sucesso.")
 
