@@ -2,7 +2,8 @@ import requests
 from sqlalchemy import create_engine, text
 import os
 from datetime import datetime, timedelta, timezone
-import json  # para converter listas em JSON válido
+import json  
+import html 
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
@@ -16,12 +17,12 @@ def fetch_questions():
             last_update = row["last_update"]
             if isinstance(last_update, str):
                 last_update = datetime.fromisoformat(last_update)
-            if last_update.tzinfo is None: #NAO SUBTRAIR DATAS NAIVE COM DATAS AWARE
+            if last_update.tzinfo is None:  # NÃO SUBTRAIR DATAS NAIVE COM DATAS AWARE
                 last_update = last_update.replace(tzinfo=timezone.utc)
             now = datetime.now(timezone.utc)
             delta = now - last_update
             if delta < timedelta(hours=24):
-                return   #se <24h desde ultima atualizacao, nao altera nada no banco
+                return   # se <24h desde última atualização, não altera nada no banco
 
     # Buscar novas perguntas da API
     response = requests.get("https://opentdb.com/api.php?amount=10&type=multiple")
@@ -31,13 +32,19 @@ def fetch_questions():
         print("Falha na API")
         return
     
-    questions = [{
-        "question": q["question"],
-        "correct_answer": q["correct_answer"],
-        "incorrect_answers": json.dumps(q["incorrect_answers"])  # lista pra json
-    } for q in data["results"]]
+    questions = []
+    for q in data["results"]:
+        question_text = html.unescape(q["question"])
+        correct_answer = html.unescape(q["correct_answer"])
+        incorrect_answers = json.dumps([html.unescape(ans) for ans in q["incorrect_answers"]])
+
+        questions.append({
+            "question": question_text,
+            "correct_answer": correct_answer,
+            "incorrect_answers": incorrect_answers
+        })
     
-    #depois de fazer parse da resposta da api, atualiza o banco em si
+    # Depois de fazer parse da resposta da API, atualiza o banco em si
     with engine.begin() as conn:
         # Limpa perguntas antigas (>24H)
         conn.execute(text("DELETE FROM questions"))
